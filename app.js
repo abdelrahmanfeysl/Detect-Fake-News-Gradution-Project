@@ -4,6 +4,7 @@ const express = require('express');
 require('express-async-errors');
 const morgan = require('morgan');
 const userRouter=require('./roots/userRoutes')
+const newsRouter = require('./roots/newsRoutes');
 const cookieParser=require('cookie-parser');
 const errorHandlerMiddleware = require('./controllers/errorHandler');
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 
 //Routes of middlewares
 app.use('/api/v1/users',userRouter);
+app.use('/api/v1/news',newsRouter);
 app.use(errorHandlerMiddleware);
 
 
