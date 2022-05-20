@@ -1,15 +1,13 @@
 const News = require('./../models/newsModel');
-const User = require("../models/userModel");
 const apiError = require('./../utils/apiError');
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 
 
-// Post new News to the database
-exports.searchNews = async (req, res, next) => {
+// Detect News for user & Post new News to the database
+exports.userDetectNews = async (req, res) => {
 
-    if(!req.body.user) req.body.user = req.user.id;
-
+    req.body.user = req.user.id;
     const newNews = await News.create(req.body);
 
     res.status(201).json({
@@ -19,13 +17,24 @@ exports.searchNews = async (req, res, next) => {
 }
 
 
+// Detect News for the guest
+exports.guestDetectNews = async (req, res) => {
+
+    // send response
+
+    res.status(201).json({
+        status: 'success'
+    })
+}
+
+
 // Delete News by id from the database
-exports.deleteNews = async (req, res, next) => {
+exports.deleteNews = async (req, res) => {
 
     const news = await News.findByIdAndDelete(req.params.id);
 
     if (!news) {
-        throw new apiError('No tour found with that ID', 404);
+        throw new apiError('No News found with that ID', 404);
     }
 
     res.status(204).json({
@@ -35,8 +44,19 @@ exports.deleteNews = async (req, res, next) => {
 }
 
 
+// Delete News that exceed one month later from database
+exports.deleteMonthAgoNews = async (req, res, next) => {
+
+    const news = await News.deleteMany({
+        date: { $lte: new Date( ( new Date().getTime() - (30 * 24 * 60 * 60 * 1000) ) ) }
+    });
+
+    next();
+}
+
+
 // Get searched news that all users searched (in the last week)
-exports.recentlySearchedNews = async (req, res, next) => {
+exports.recentlySearchedNews = async (req, res) => {
 
     const news = await News.find({
         date: { $gte: new Date( ( new Date().getTime() - (7 * 24 * 60 * 60 * 1000) ) ) } // last week
@@ -51,7 +71,7 @@ exports.recentlySearchedNews = async (req, res, next) => {
 
 
 // Get History of news that specific user searched before (in the last month)
-exports.userHistory = async (req, res, next) => {
+exports.userHistory = async (req, res) => {
 
     const news = await News.find({
         user: ObjectId(req.user.id),
