@@ -15,4 +15,6 @@ User:<br/>
 5- Can Add/Delete review about the (News Detection Process) to allow us to enhance the machine learning model.<br/>
 
 Guest:<br/>
-1-
+1- Enter news to be detected if it true or false by using API that send response to the user till him if the news is true or false.<br/>
+2- Can show recently searched news by all the users in the system in the last 7 days.<br/>
+3- Can show trendy news that published by the newspapers and websites.<br/>
