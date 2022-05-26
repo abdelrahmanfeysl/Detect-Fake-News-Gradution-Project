@@ -5,6 +5,7 @@ require('express-async-errors');
 const morgan = require('morgan');
 const userRouter=require('./roots/userRoutes')
 const newsRouter = require('./roots/newsRoutes');
+const reviewRouter = require('./roots/reviewRoutes');
 const cookieParser=require('cookie-parser');
 const errorHandlerMiddleware = require('./controllers/errorHandler');
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 //Routes of middlewares
 app.use('/api/v1/users',userRouter);
 app.use('/api/v1/news',newsRouter);
+app.use('/api/v1/reviews',reviewRouter);
 app.use(errorHandlerMiddleware);
 
 
