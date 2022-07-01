@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
 const axios = require('axios');
 
-let result = 0;
+let news_Status_Percent = 0;
 
 // post request to flask api to connect to the machine learning model ( input: news  output: percentage of correctness)
 exports.callFlaskAPI = async (req, res, next) => {
@@ -16,8 +16,8 @@ exports.callFlaskAPI = async (req, res, next) => {
     await axios.post(process.env.FLASK_API_URL, data)
         .then((res) => {
             console.log(`Status: ${res.status}`);
-            result = (res.data).result*1;
-            console.log('response: ', result );
+            news_Status_Percent = (res.data).result * 1;
+            console.log('response: ', news_Status_Percent );
         }).catch((err) => {
             throw new err;
         });
@@ -29,16 +29,17 @@ exports.callFlaskAPI = async (req, res, next) => {
 // Detect News for user & Post new News to the database
 exports.userDetectNews = async (req, res) => {
 
-    let newsStatus = false;
-    newsStatus = result >= 0.5;
+    let newsStatus = news_Status_Percent > 0.5;
 
     req.body.user = req.user.id;
+    req.body.status_Percent = news_Status_Percent;
     req.body.status = newsStatus;
     const newNews = await News.create(req.body);
 
     res.status(201).json({
         status: 'success',
         result: newsStatus,
+        result_Percent: news_Status_Percent,
         data: newNews
     })
 }
@@ -47,12 +48,12 @@ exports.userDetectNews = async (req, res) => {
 // Detect News for the guest
 exports.guestDetectNews = async (req, res) => {
 
-    let newsStatus = false;
-    newsStatus = result >= 0.5;
+    let newsStatus = news_Status_Percent > 0.5;
 
     res.status(201).json({
         status: 'success',
-        result: newsStatus
+        result: newsStatus,
+        result_Percent: news_Status_Percent
     })
 }
 
@@ -76,7 +77,7 @@ exports.deleteNews = async (req, res) => {
 // Delete News that exceed one month later from database
 exports.deleteMonthAgoNews = async (req, res, next) => {
 
-    const news = await News.deleteMany({
+    await News.deleteMany({
         date: { $lte: new Date( ( new Date().getTime() - (30 * 24 * 60 * 60 * 1000) ) ) }
     });
 
