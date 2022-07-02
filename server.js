@@ -8,9 +8,9 @@ dotenv.config({path:`${__dirname}/config.env`});
 
 const app=require('./app');
 
-const DB=process.env.DATABASE_LOCAL
-
-mongoose.connect(DB).then(con=>console.log('connection to DB is success') );
+DATABASE="mongodb+srv://gp:<password>@cluster0.x78mq.mongodb.net/FakeNewsDetector"
+const DB=DATABASE.replace('<password>',process.env.DATABASE_PASSWORD);
+mongoose.connect(DB).then(con=> console.log('connection is success'))
 
 const port=process.env.PORT || 6000;
 app.listen(port, () => {
