@@ -5,6 +5,17 @@ const apiError = require('./../utils/apiError');
 const {promisify} = require('util');
 const sendEmail = require("../utils/email");
 
+
+const otpGenerator= ()=>{
+    while (true){
+        const randomNumber=  Math.ceil(Math.random() *100000);
+        const randomNumberString = String(randomNumber);
+        if (randomNumberString.length===5){
+            return randomNumber;
+        }
+    }
+}
+
 //SEND ACCESS TOKEN TO USER
 const createSendToken=(user,statusCode,req,res)=>{
     const token=tokenSign(user._id);
@@ -39,16 +50,19 @@ const tokenSign=(id)=>{
 
 //SIGNUP MIDDLEWARE
 exports.signUp= async (req,res)=>{
+    const user2 = await User.findOne({
+        email: req.body.email
+    })
+    if(user2)
+        throw new apiError('An email must be unique',400);
     const user=await User.create({
         name:req.body.name,
         email:req.body.email,
         password:req.body.password,
-        confirmPassword:req.body.confirmPassword
     })
 
     createSendToken(user,201,req,res);
 }
-
 
 //LOGIN MIDDLEWARE
 exports.logIn=async(req,res)=>{
@@ -116,31 +130,29 @@ exports.forgotPassword = async (req, res, next) => {
         return next(new apiError('There is no user with this email address.', 404));
     }
 
-    // 2) Generate the random reset token
-    const resetToken = user.createPasswordResetToken();
+    const otpNumber = otpGenerator();
+    user.OTP = otpNumber;
     await user.save({ validateBeforeSave: false });
-
     // 3) Send it to user's email
     const resetURL = `${req.protocol}://${req.get(
         'host'
-    )}/api/v1/users/resetPassword/${resetToken}`;
+    )}/api/v1/users/resetPassword/${otpNumber}`;
 
-    const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
+    const message = `Forgot your password? Submit your OTP code given below \n\n  \t\t\t\t  ${otpNumber}\n`;
 
     try {
         await sendEmail({
             email: user.email,
-            subject: 'Your password reset token (valid for 10 min)',
+            subject: 'Your OTP code (valid for 10 min)',
             message
         });
 
         res.status(200).json({
             status: 'success',
-            message: 'Token sent to email!'
+            message: 'OTP code sent to email!'
         });
     } catch (err) {
-        user.passwordResetToken = undefined;
-        user.passwordResetExpires = undefined;
+        user.OTP = null;
         await user.save({ validateBeforeSave: false });
 
         return next(
@@ -189,23 +201,17 @@ exports.logout = (req, res) => {
 };
 
 exports.resetPassword = async(req,res, next)=>{
-    const hashedToken = crypto
-        .createHash('sha256')
-        .update(req.params.token)
-        .digest('hex');
 
     const user = await User.findOne({
-        passwordResetToken: hashedToken,
-        passwordResetExpires: {$gt: Date.now()}
+        OTP: req.params.OTP
     });
-
+    console.log(user);
     if(!user){
-        return next(new apiError('Token is invalid or has expired',400))
+        return next(new apiError('OTP is invalid or has expired',400))
     }
     user.password = req.body.password;
     user.confirmPassword = req.body.confirmPassword;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
+    user.OTP = undefined;
     await user.save();
 
     const token = tokenSign(user._id);

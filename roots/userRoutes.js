@@ -10,7 +10,8 @@ router.post('/signup',authController.signUp);
 router.post('/login',authController.logIn);
 router.get('/logout',authController.logout);
 router.get('/print',authController.protect,authController.print);
-
+router.post('/forgotPassword',authController.forgotPassword);
+router.patch('/resetPassword/:OTP',authController.resetPassword);
 
 
 //ROUTES WHICH MUST BE AUTHENTICATED
@@ -19,8 +20,6 @@ router.use(authController.protect);
 router.get('/getMe',userController.getMe);
 router.get('/deleteMe',userController.deleteMe);
 router.post('/updatePassword',authController.protect,authController.updatePassword);
-router.post('/forgotPassword',authController.forgotPassword);
-router.patch('/resetPassword/:token',authController.resetPassword);
 
 
 

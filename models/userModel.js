@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const validator=require('validator');
 const bcrypt=require('bcryptjs');
-const crypto = require("crypto");
-
 
 const userSchema=new mongoose.Schema({
     name:{
@@ -12,7 +10,7 @@ const userSchema=new mongoose.Schema({
     email:{
         type: 'string',
         required: [true,'user must have a email'],
-        unique: true,
+        unique: [true, 'An email must be unique'],
         lowercase: true,
         validate:[validator.isEmail ,'Please provide a valid email']
     },
@@ -31,27 +29,10 @@ const userSchema=new mongoose.Schema({
         default:true,
         select :false
     },
-    confirmPassword:{
-        type:String,
-        required:[true,'Please provide a confirm password'],
-        minLength:8,
-        validate:{
-            validator:function (vl) {
-                return vl===this.password;
-            },
-            message:'passwords are not the same'
-        }
-    },
     passwordChangedAt:{ //to save time of change password
         type: Date
     },
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-    active: {
-        type: Boolean,
-        default: true,
-        select: false
-    }
+    OTP: String,
 })
 
 
@@ -61,7 +42,6 @@ userSchema.pre('save',async function(next){
     if(!this.isModified('password')) return next();
 
     this.password=await bcrypt.hash(this.password,12);
-    this.confirmPassword=undefined;
     next();
 })
 
@@ -98,23 +78,6 @@ userSchema.methods.changedPasswordAfter=function(JWTTimeStamp){
     }
     return false;
 }
-
-
-userSchema.methods.createPasswordResetToken = function() {
-    const resetToken = crypto.randomBytes(32).toString('hex');
-
-    this.passwordResetToken = crypto
-        .createHash('sha256')
-        .update(resetToken)
-        .digest('hex');
-
-    console.log({ resetToken }, this.passwordResetToken);
-
-    this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-
-    return resetToken;
-};
-
 
 const User=mongoose.model('User',userSchema);
 

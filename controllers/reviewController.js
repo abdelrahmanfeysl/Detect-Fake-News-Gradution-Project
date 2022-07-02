@@ -5,6 +5,11 @@ const ObjectId = mongoose.Types.ObjectId;
 
 exports.createReview = async (req, res) => {
     req.body.user = req.user.id;
+    const review = await Review.findOne({
+        user: ObjectId(req.user.id)
+    });
+    if(review)
+        throw new apiError('A user can have only one review',400);
     const newReview = await Review.create(req.body);
 
     res.status(201).json({
@@ -50,8 +55,13 @@ exports.getAllReviews = async (req, res) => {
 exports.updateReview = async (req, res, next) => {
     const review = await Review.findOneAndUpdate({
         user: ObjectId(req.user.id),
-    }, req.body);
+    }, req.body,
+        {
+            new: true
+        }
+    );
 
+    console.log(review);
     res.status(200).json({
         status: 'success',
         data: {
