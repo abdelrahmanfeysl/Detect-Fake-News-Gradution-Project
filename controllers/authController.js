@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const User =require('./../models/userModel');
 const apiError = require('./../utils/apiError');
 const {promisify} = require('util');
@@ -131,13 +130,8 @@ exports.forgotPassword = async (req, res, next) => {
     }
 
     const otpNumber = otpGenerator();
-    user.OTP = otpNumber;
+    user.set({OTP:otpNumber, OTPExpires:Date.now()+ 5 * 60 * 1000})
     await user.save({ validateBeforeSave: false });
-    // 3) Send it to user's email
-    const resetURL = `${req.protocol}://${req.get(
-        'host'
-    )}/api/v1/users/resetPassword/${otpNumber}`;
-
     const message = `Forgot your password? Submit your OTP code given below \n\n  \t\t\t\t  ${otpNumber}\n`;
 
     try {
@@ -205,7 +199,8 @@ exports.resetPassword = async(req,res, next)=>{
     const user = await User.findOne({
         OTP: req.params.OTP
     });
-    console.log(user);
+    if(user.OTPExpires<Date.now())
+        throw new apiError("OTP expired",400)
     if(!user){
         return next(new apiError('OTP is invalid or has expired',400))
     }
