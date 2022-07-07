@@ -1,6 +1,7 @@
 const Review = require("../models/reviewModel");
 const mongoose = require("mongoose");
 const apiError = require("../utils/apiError");
+const User = require("../models/userModel");
 const ObjectId = mongoose.Types.ObjectId;
 
 exports.createReview = async (req, res) => {
@@ -11,6 +12,13 @@ exports.createReview = async (req, res) => {
     if(review)
         throw new apiError('A user can have only one review',400);
     const newReview = await Review.create(req.body);
+
+    const user = await User.findOne({
+        id: req.user.id
+    })
+    console.log(user);
+    newReview.name = user.name;
+    await newReview.save();
 
     res.status(201).json({
         status: 'success',

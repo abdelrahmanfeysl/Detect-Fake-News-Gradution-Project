@@ -13,6 +13,20 @@ exports.callFlaskAPI = async (req, res, next) => {
         news: req.body.description
     };
 
+    const temp_news = await News.findOne({
+        description: req.body.description
+    })
+
+    if (temp_news)
+    {
+        return res.status(200).json({
+            status: 'success',
+            result: temp_news.status,
+            result_Percent: temp_news.status_Percent,
+            data: temp_news
+        })
+    }
+
     await axios.post(process.env.FLASK_API_URL, data)
         .then((res) => {
             console.log(`Status: ${res.status}`);
