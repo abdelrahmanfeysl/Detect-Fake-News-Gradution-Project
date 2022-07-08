@@ -22,7 +22,8 @@ const reviewSchema = new mongoose.Schema(
             required: [true, "User reference can't be empty"]
         },
         name: {
-            type: String
+            type: String,
+            default: ""
         }
     });
 
