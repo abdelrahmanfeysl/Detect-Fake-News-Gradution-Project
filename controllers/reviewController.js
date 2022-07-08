@@ -13,11 +13,7 @@ exports.createReview = async (req, res) => {
         throw new apiError('A user can have only one review',400);
     const newReview = await Review.create(req.body);
 
-    const user = await User.findOne({
-        id: req.user.id
-    })
-    console.log(user);
-    newReview.name = user.name;
+    newReview.name = req.user.name;
     await newReview.save();
 
     res.status(201).json({
