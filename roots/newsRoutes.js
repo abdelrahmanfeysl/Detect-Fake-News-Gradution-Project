@@ -7,6 +7,7 @@ const newsController = require('./../controllers/newsController');
 const router = express.Router();
 
 router.route('/recentlySearchedNews').get(newsController.recentlySearchedNews);
+router.route('/trendyNews').get(newsController.trendyNews);
 router.route('/guestDetectNews').post(newsController.callFlaskAPI, newsController.guestDetectNews);
 
 router.use( authController.protect, authController.restrict("user") );

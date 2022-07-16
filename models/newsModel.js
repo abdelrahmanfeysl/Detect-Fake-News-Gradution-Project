@@ -14,7 +14,7 @@ const newsSchema = new mongoose.Schema(
         description: {
             type: String,
             required: [true, 'The News must have a description.'],
-            trim: true
+            trim: true  // to remove white spaces from both ends of string
         },
         status: {
             type: Boolean,

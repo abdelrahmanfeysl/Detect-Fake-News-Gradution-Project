@@ -48,6 +48,14 @@ exports.userDetectNews = async (req, res) => {
     req.body.user = req.user.id;
     req.body.status_Percent = news_Status_Percent;
     req.body.status = newsStatus;
+
+    if(news_Status_Percent===-1)
+    {
+        return res.status(400).json({
+            status: 'fail',
+            result: -1
+        })
+    }
     const newNews = await News.create(req.body);
 
     res.status(201).json({
@@ -63,6 +71,14 @@ exports.userDetectNews = async (req, res) => {
 exports.guestDetectNews = async (req, res) => {
 
     let newsStatus = news_Status_Percent > 0.5;
+
+    if(news_Status_Percent===-1)
+    {
+        return res.status(400).json({
+            status: 'fail',
+            result: -1
+        })
+    }
 
     res.status(201).json({
         status: 'success',
@@ -95,6 +111,8 @@ exports.deleteMonthAgoNews = async (req, res, next) => {
         date: { $lte: new Date( ( new Date().getTime() - (30 * 24 * 60 * 60 * 1000) ) ) }
     });
 
+    console.log(new Date( ( new Date().getTime() - (30 * 24 * 60 * 60 * 1000) ) ));
+
     next();
 }
 
@@ -113,6 +131,20 @@ exports.recentlySearchedNews = async (req, res) => {
     })
 }
 
+
+exports.trendyNews = async (req, res) => {
+
+    await axios.get("https://newsapi.org/v2/top-headlines?country=eg&apiKey=304ac087572f4b4e806f7b825d3d3789&pageSize=100")
+        .then((response) => {
+            res.status(200).json({
+                data: response.data
+            })
+        }).catch((err) => {
+            console.log(err);
+            throw new err;
+        });
+
+}
 
 // Get History of news that specific user searched before (in the last month)
 exports.userHistory = async (req, res) => {

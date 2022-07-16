@@ -24,6 +24,7 @@
     "mongoose": "^6.4.1",
     "mongoose-double": "^0.0.1",
     "morgan": "^1.10.0",
+    "newsapi": "^2.4.1",
     "nodemailer": "^6.7.5",
     "nodemon": "^2.0.15",
     "number": "^0.0.1",
